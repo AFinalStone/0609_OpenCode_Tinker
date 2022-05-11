@@ -1,4 +1,4 @@
-package com.afs.tinker;
+package com.example.mytinker;
 
 import org.junit.Test;
 
