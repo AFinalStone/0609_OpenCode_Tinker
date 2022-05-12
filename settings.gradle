@@ -1,4 +1,5 @@
 rootProject.name = "Android0306_OpenCode_Tinker"
 include ':0001_MyTinker'
-include ':0101_TinkerDemo01'
-include ':0102_TinkerDemo02'
+include ':0101_Tinker_Demo'
+include ':0201_Tinker_Main'
+//include ':0202_Tinker_Library'

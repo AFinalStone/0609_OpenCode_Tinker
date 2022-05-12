@@ -1,0 +1,72 @@
+plugins {
+    id 'com.android.library'
+}
+
+android {
+    compileSdkVersion rootProject.ext.android.compileSdkVersion
+    buildToolsVersion rootProject.ext.android.buildToolsVersion
+
+    defaultConfig {
+        minSdkVersion rootProject.ext.android.minSdkVersion
+        targetSdkVersion rootProject.ext.android.targetSdkVersion
+
+        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+        consumerProguardFiles "consumer-rules.pro"
+
+        /**
+         * you can use multiDex and install it in your ApplicationLifeCycle implement
+         * 开启多分包
+         */
+        multiDexEnabled true
+        //tinker混淆情况处理
+        multiDexKeepProguard file("tinker_multidexkeep.pro")
+        /**
+         * buildConfig can change during patch!
+         * we can use the newly value when patch
+         * 配置patch信息
+         */
+        buildConfigField "String", "MESSAGE", "\"I am the base apk\""
+        /**
+         * client version would update with patch
+         * so we can get the newly git version easily!
+         * 配置TINKER_ID
+         */
+        buildConfigField "String", "TINKER_ID", "\"${TINKER_ID}\""
+        /**
+         * 支持全平台
+         */
+        buildConfigField "String", "PLATFORM", "\"all\""
+
+    }
+    //recommend 开启jumboMode
+    dexOptions {
+        jumboMode = true
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+        }
+    }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
+}
+
+dependencies {
+    //引入tinker核心库
+    api("com.tencent.tinker:tinker-android-lib:${TINKER_VERSION}") { changing = true }
+    // Maven local cannot handle transist dependencies.
+    implementation("com.tencent.tinker:tinker-android-loader:${TINKER_VERSION}") { changing = true }
+    annotationProcessor("com.tencent.tinker:tinker-android-anno:${TINKER_VERSION}") { changing = true }
+    compileOnly("com.tencent.tinker:tinker-android-anno:${TINKER_VERSION}") { changing = true }
+    compileOnly("com.tencent.tinker:tinker-android-anno-support:${TINKER_VERSION}") { changing = true }
+
+    //基础依赖
+    implementation "androidx.multidex:multidex:${rootProject.ext.dependVersion.multidexVersion}"
+    implementation "androidx.appcompat:appcompat:${rootProject.ext.dependVersion.androidXVersion}"
+    implementation "com.google.android.material:material:${rootProject.ext.dependVersion.materialVersion}"
+}

@@ -5,4 +5,16 @@ ext {
             compileSdkVersion: 28,
             buildToolsVersion: '28.0.3',
     ]
+
+    dependVersion = [
+            androidXVersion  : '1.0.0',
+            okhttpVersion    : "3.12.1",
+            retrofitVersion  : "2.2.0",
+            rxjavaVersion    : '2.2.13',
+            rxandroidVersion : '2.1.1',
+            gsonVersion      : '2.8.5',
+            leakcanaryVersion: "2.3",
+            multidexVersion  : "2.0.1",
+            materialVersion  : "1.4.0"
+    ]
 }
