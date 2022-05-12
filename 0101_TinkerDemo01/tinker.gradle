@@ -1,3 +1,146 @@
+apply plugin: 'com.android.application'
+
+dependencies {
+    if (is_gradle_3()) {
+        implementation fileTree(dir: 'libs', include: ['*.jar'])
+        testImplementation 'junit:junit:4.12'
+        implementation "androidx.appcompat:appcompat:1.1.0"
+        api("com.tencent.tinker:tinker-android-lib:${TINKER_VERSION}") { changing = true }
+
+        // Maven local cannot handle transist dependencies.
+        implementation("com.tencent.tinker:tinker-android-loader:${TINKER_VERSION}") { changing = true }
+
+        annotationProcessor("com.tencent.tinker:tinker-android-anno:${TINKER_VERSION}") { changing = true }
+        compileOnly("com.tencent.tinker:tinker-android-anno:${TINKER_VERSION}") { changing = true }
+        compileOnly("com.tencent.tinker:tinker-android-anno-support:${TINKER_VERSION}") { changing = true }
+
+        implementation "androidx.multidex:multidex:2.0.1"
+        //use to test multiDex
+//    implementation group: 'com.google.guava', name: 'guava', version: '19.0'
+//    implementation "org.scala-lang:scala-library:2.11.7"
+    } else {
+        compile fileTree(dir: 'libs', include: ['*.jar'])
+        testCompile 'junit:junit:4.12'
+        compile "androidx.appcompat:appcompat:1.1.0"
+        compile("com.tencent.tinker:tinker-android-lib:${TINKER_VERSION}") { changing = true }
+        provided("com.tencent.tinker:tinker-android-anno:${TINKER_VERSION}") { changing = true }
+        provided("com.tencent.tinker:tinker-android-anno-support:${TINKER_VERSION}") { changing = true }
+
+        compile "androidx.multidex:multidex:2.0.1"
+
+        //use to test multiDex
+//    compile group: 'com.google.guava', name: 'guava', version: '19.0'
+//    compile "org.scala-lang:scala-library:2.11.7"
+    }
+}
+
+def gitSha() {
+    try {
+        String gitRev = 'git rev-parse --short HEAD'.execute(null, project.rootDir).text.trim()
+        if (gitRev == null) {
+            throw new GradleException("can't get git rev, you should add git to system path or just input test value, such as 'testTinkerId'")
+        }
+        return gitRev
+    } catch (Exception e) {
+        throw new GradleException("can't get git rev, you should add git to system path or just input test value, such as 'testTinkerId'")
+    }
+}
+
+def javaVersion = JavaVersion.VERSION_1_7
+
+android {
+    compileSdkVersion 28
+    buildToolsVersion '28.0.3'
+
+    compileOptions {
+        sourceCompatibility javaVersion
+        targetCompatibility javaVersion
+    }
+    //recommend
+    dexOptions {
+        jumboMode = true
+    }
+
+    signingConfigs {
+        release {
+            try {
+                storeFile file("./keystore/release.keystore")
+                storePassword "testres"
+                keyAlias "testres"
+                keyPassword "testres"
+            } catch (ex) {
+                throw new InvalidUserDataException(ex.toString())
+            }
+        }
+
+        debug {
+            storeFile file("./keystore/debug.keystore")
+        }
+    }
+
+    defaultConfig {
+        applicationId "tinker.sample.android"
+        minSdkVersion 14
+        targetSdkVersion 26
+        versionCode 1
+        versionName "1.0.0"
+        /**
+         * you can use multiDex and install it in your ApplicationLifeCycle implement
+         */
+        multiDexEnabled true
+        multiDexKeepProguard file("tinker_multidexkeep.pro")
+        /**
+         * buildConfig can change during patch!
+         * we can use the newly value when patch
+         */
+        buildConfigField "String", "MESSAGE", "\"I am the base apk\""
+//        buildConfigField "String", "MESSAGE", "\"I am the patch apk\""
+        /**
+         * client version would update with patch
+         * so we can get the newly git version easily!
+         */
+        buildConfigField "String", "TINKER_ID", "\"${getTinkerIdValue()}\""
+        buildConfigField "String", "PLATFORM", "\"all\""
+    }
+
+//    aaptOptions{
+//        additionalParameters "--emit-ids", "${project.file('public.txt')}"
+//        cruncherEnabled false
+//    }
+
+//    //use to test flavors support
+//    productFlavors {
+//        flavor1 {
+//            applicationId 'tinker.sample.android.flavor1'
+//        }
+//
+//        flavor2 {
+//            applicationId 'tinker.sample.android.flavor2'
+//        }
+//    }
+
+    buildTypes {
+        release {
+            minifyEnabled true
+            signingConfig signingConfigs.release
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), project.file('proguard-rules.pro')
+        }
+        debug {
+            debuggable true
+            minifyEnabled false
+            signingConfig signingConfigs.debug
+        }
+    }
+    sourceSets {
+        main {
+            jniLibs.srcDirs = ['libs']
+        }
+    }
+
+    packagingOptions {
+        exclude "/META-INF/**"
+    }
+}
 
 def bakPath = file("${buildDir}/bakApk/")
 
@@ -12,11 +155,11 @@ ext {
 
     //for normal build
     //old apk file to build patch apk
-    tinkerOldApkPath = "${bakPath}/app-debug-0424-15-02-56.apk"
+    tinkerOldApkPath = "${bakPath}/app-debug-0512-13-50-04.apk"
     //proguard mapping file to build patch apk
     tinkerApplyMappingPath = "${bakPath}/app-debug-1018-17-32-47-mapping.txt"
     //resource R.txt to build patch apk, must input if there is resource changed
-    tinkerApplyResourcePath = "${bakPath}/app-debug-0424-15-02-56-R.txt"
+    tinkerApplyResourcePath = "${bakPath}/app-debug-0512-13-50-04-R.txt"
 
     //only use for build all flavor, if not, just ignore this field
     tinkerBuildFlavorDirectory = "${bakPath}/app-1018-17-32-47"
