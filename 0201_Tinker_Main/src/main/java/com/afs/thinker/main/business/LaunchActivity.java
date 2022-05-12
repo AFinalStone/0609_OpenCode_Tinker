@@ -19,7 +19,6 @@ package com.afs.thinker.main.business;
 import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
-import android.os.SystemClock;
 
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
@@ -33,7 +32,6 @@ public class LaunchActivity extends AppCompatActivity {
         new Handler().post(new Runnable() {
             @Override
             public void run() {
-                SystemClock.sleep(5000);
                 startActivity(new Intent(LaunchActivity.this, LoginActivity.class));
             }
         });
